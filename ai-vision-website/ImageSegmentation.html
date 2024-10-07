@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Segmentation</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
+</head>
+<body>
+    <header>
+        <h1>IMAGE SEGMENTATION</h1>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="ObjectDetection.html">Object Detection</a></li>
+            <li><a href="ImageClassification.html">Image Classification</a></li>
+            <li><a href="ImageSegmentation.html">Image Segmentation</a></li>
+            <li><a href="FaceDetection.html">Face Detection</a></li>
+            <li><a href="GestureRecognition.html">Gesture Recognition</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section class="main-container">
+            <div id="content" style="text-align: center;"></div>
+            <h2 class="main-title">การแยกส่วนภาพ (Segmentation)</h2>
+            <p class="description">
+                การแยกส่วนภาพคือการใช้ Machine Learning เพื่อแยกส่วนต่างๆของภาพ เช่น การแยกร่างกายออกจากพื้นหลัง <br>
+                ในที่นี้เราจะใช้โมเดล BodyPix ซึ่งสามารถแยกร่างกายของมนุษย์ออกจากภาพได้ <br>
+            </p>
+            <div id="content" style="text-align: center;">
+                <div class="image-container">
+                    <img id="selectedImage" width="400" height="300" alt="Image for Segmentation">
+                </div>
+                <div>
+                    <input type="file" id="imageInput" accept="image/*" class="button">
+                    <button id="segmentButton" class="button">แยกส่วนภาพ</button>
+                </div>
+                <canvas id="canvas" width="400" height="300"></canvas>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p> Chonticha112 & Jullajuk102</p>
+    </footer>
+
+</body>
+
+<script>
+    const imageInput = document.getElementById('imageInput');
+    const selectedImage = document.getElementById('selectedImage');
+    const segmentButton = document.getElementById('segmentButton');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let model;
+
+    // Load the BodyPix model
+    async function loadModel() {
+        model = await bodyPix.load();
+        console.log('BodyPix model loaded.');
+    }
+
+    // Load the model when the page is loaded
+    window.onload = () => {
+        loadModel();
+    };
+
+    // Display the selected image
+    imageInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            selectedImage.src = e.target.result;
+        };
+
+        reader.readAsDataURL(file);
+    });
+
+    // Segment the image when the button is clicked
+    segmentButton.addEventListener('click', async () => {
+        if (!model || !selectedImage.src) return;
+
+        // Draw the selected image to the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(selectedImage, 0, 0, canvas.width, canvas.height);
+
+        // Perform segmentation on the image
+        const segmentation = await model.segmentPerson(selectedImage);
+        console.log(segmentation);
+
+        // Create mask from segmentation
+        const mask = bodyPix.toMask(segmentation);
+
+        // Draw mask on the canvas
+        ctx.putImageData(mask, 0, 0);
+    });
+</script>
+</html>

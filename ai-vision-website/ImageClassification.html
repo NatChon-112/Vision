@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Classification</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+</head>
+<body>
+    <header>
+        <h1>IMAGE CLASSIFICATION</h1>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About Us</a></li> 
+            <li><a href="ObjectDetection.html">Object Detection</a></li>
+            <li><a href="ImageClassification.html">Image Classification</a></li>
+            <li><a href="ImageSegmentation.html">Image Segmentation</a></li>
+            <li><a href="FaceDetection.html">Face Detection</a></li>
+            <li><a href="GestureRecognition.html">Gesture Recognition</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section class="main-container">
+            <div id="content" style="text-align: center;"></div>
+            <h2 class="main-title">การจำแนกประเภทวัตถุ</h2>
+            <p class="description">
+                การจำแนกประเภทวัตถุคือการใช้โมเดล Machine Learning เพื่อทำนายสิ่งที่ปรากฏในภาพ <br>
+                โมเดล MobileNet สามารถใช้ในการจำแนกวัตถุต่าง ๆ ได้หลากหลายชนิดในภาพ <br>
+            </p>
+            <div id="content" style="text-align: center;">
+                <div class="image-container">
+                    <img id="selectedImage" width="400" height="300" alt="Image for Classification">
+                </div>
+                <div>
+                    <input type="file" id="imageInput" accept="image/*" class="button">
+                    <button id="classifyButton" class="button">จำแนกรูปภาพ</button>
+                </div>
+                <div id="predictionResult"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p> Chonticha112 & Jullajuk102</p>
+    </footer>
+
+</body>
+
+<script>
+    const imageInput = document.getElementById('imageInput');
+    const selectedImage = document.getElementById('selectedImage');
+    const classifyButton = document.getElementById('classifyButton');
+    const predictionResult = document.getElementById('predictionResult');
+    let model;
+
+    // Load the MobileNet model
+    async function loadModel() {
+        model = await mobilenet.load();
+        console.log('MobileNet model loaded.');
+    }
+
+    // Load the model when the page is loaded
+    window.onload = () => {
+        loadModel();
+    };
+
+    // Display the selected image
+    imageInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            selectedImage.src = e.target.result;
+        };
+
+        reader.readAsDataURL(file);
+    });
+
+    // Classify the image when the button is clicked
+    classifyButton.addEventListener('click', async () => {
+        if (!model || !selectedImage.src) return;
+
+        // Classify the image
+        const predictions = await model.classify(selectedImage);
+        console.log(predictions);
+
+        // Display predictions
+        predictionResult.innerHTML = '';
+        predictions.forEach(prediction => {
+            const p = document.createElement('p');
+            p.innerText = `${prediction.className}: ${(prediction.probability * 100).toFixed(2)}%`;
+            predictionResult.appendChild(p);
+        });
+    });
+</script>
+</html>

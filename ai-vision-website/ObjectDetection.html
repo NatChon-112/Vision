@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Vision Tasks</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+</head>
+<body>
+    <header>
+        <h1>OBJECT DETECTION</h1>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About Us</a></li> 
+            <li><a href="ObjectDetection.html">Object Detection</a></li>
+            <li><a href="ImageClassification.html">Image Classification</a></li>
+            <li><a href="ImageSegmentation.html">Image Segmentation</a></li>
+            <li><a href="FaceDetection.html">Face Detection</a></li>
+            <li><a href="GestureRecognition.html">Gesture Recognition</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section class="main-container">
+            <div id="content" style="text-align: center;"></div>
+            <h2 class="main-title">การตรวจจับวัตถุ</h2>
+            <p class="description">
+                การทำงานของ Object Detection คือการระบุและจำแนกวัตถุในภาพหรือวิดีโอ พร้อมบอกตำแหน่งของวัตถุโดยใช้โมเดล <br> Machine Learning โมเดลจะตรวจหาวัตถุในแต่ละส่วนของภาพและสร้างกรอบสี่เหลี่ยมล้อมรอบตำแหน่งที่พบวัตถุพร้อมให้คะแนนความเชื่อมั่น <br>
+            </p>
+            <div id="content" style="text-align: center;">
+                <div class="camera-container">
+                    <video id="video" autoplay></video>
+                </div>
+                <div>
+                    <button id="startButton" class="button">เปิดกล้อง</button>
+                    <button id="stopButton" class="button">ปิดกล้อง</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p> Chonticha112 & Jullajuk102</p>
+    </footer>
+</body>
+
+<script>
+    const video = document.getElementById('video');
+    const startButton = document.getElementById('startButton');
+    const stopButton = document.getElementById('stopButton');
+    let model;
+
+    // Load the COCO-SSD model
+    async function loadModel() {
+        model = await cocoSsd.load();
+        console.log('Model loaded.');
+    }
+
+    // Open the camera and start object detection
+    startButton.addEventListener('click', async () => {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+
+        // Start object detection
+        startObjectDetection();
+    });
+
+    // Stop the camera and object detection
+    stopButton.addEventListener('click', () => {
+        const stream = video.srcObject;
+        const tracks = stream.getTracks();
+        tracks.forEach(track => track.stop());
+        video.srcObject = null;
+
+        // Clear bounding boxes
+        const elements = document.querySelectorAll('.bbox');
+        elements.forEach(el => el.remove());
+
+        console.log('Object detection stopped.');
+    });
+
+    // Function to start object detection
+    async function startObjectDetection() {
+        await loadModel();  // Load the model if not already loaded
+
+        const detectObjects = async () => {
+            if (!video.srcObject) return; // Stop if the video stream is off
+
+            const predictions = await model.detect(video);
+            console.log(predictions);
+
+            // Clear previous bounding boxes
+            const elements = document.querySelectorAll('.bbox');
+            elements.forEach(el => el.remove());
+
+            // Draw new bounding boxes
+            predictions.forEach(prediction => {
+                drawBoundingBox(prediction);
+            });
+
+            requestAnimationFrame(detectObjects);
+        };
+
+        detectObjects();  // Start detecting
+    }
+
+    // Function to draw bounding box for detected objects
+    function drawBoundingBox(prediction) {
+        const { bbox, class: label, score } = prediction;
+        const [x, y, width, height] = bbox;
+
+        // Get the displayed size and position of the video
+        const videoRect = video.getBoundingClientRect();
+
+        // Adjust size and position based on the displayed video size
+        const scaleX = videoRect.width / video.videoWidth;
+        const scaleY = videoRect.height / video.videoHeight;
+
+        const scaledX = videoRect.left + (x * scaleX);
+        const scaledY = videoRect.top + (y * scaleY);
+        const scaledWidth = width * scaleX;
+        const scaledHeight = height * scaleY;
+
+        // Create bounding box div
+        const div = document.createElement('div');
+        div.classList.add('bbox');
+        div.style.position = 'absolute';
+        div.style.left = `${scaledX}px`;
+        div.style.top = `${scaledY}px`;
+        div.style.width = `${scaledWidth}px`;
+        div.style.height = `${scaledHeight}px`;
+        div.style.border = '3px solid red';
+        div.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+        div.style.zIndex = '10';
+
+        // Create label
+        const labelDiv = document.createElement('div');
+        labelDiv.innerHTML = `<strong>${label}</strong> (${(score * 100).toFixed(2)}%)`;
+        labelDiv.style.position = 'absolute';
+        labelDiv.style.top = '0px';
+        labelDiv.style.left = '0px';
+        labelDiv.style.color = 'white';
+        labelDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        labelDiv.style.fontSize = '12px';
+
+        div.appendChild(labelDiv);
+
+        // Append bounding box to body
+        document.body.appendChild(div);
+    }
+</script>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Vision Tasks</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>AI VISION</h1>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About Us</a></li> 
+            <li><a href="ObjectDetection.html">Object Detection</a></li>
+            <li><a href="ImageClassification.html">Image Classification</a></li>
+            <li><a href="ImageSegmentation.html">Image Segmentation</a></li>
+            <li><a href="FaceDetection.html">Face Detection</a></li>
+            <li><a href="GestureRecognition.html">Gesture Recognition</a></li>
+        </ul>
+    </nav>
+
+  <!-- Content Section -->
+<div id="content" style="text-align: center;">
+    <br>
+    <br>
+    <h2>Welcome to AI Vision Tasks</h2>
+    <p>เว็บไซต์นี้เป็นการนำเสนอของเรื่องการใช้งาน vision tasks โดยมีการเลือกนำเสนอมา 5 หัวข้อได้แก่</p>
+    <ul class="vision-tasks">
+        <li><strong>Object Detection</strong> คือการตรวจจับวัตถุ</li>
+        <li><strong>Image Classification</strong> คือการจัดประเภทรูปภาพ</li>
+        <li><strong>Image Segmentation</strong> คือการแบ่งกลุ่มรูปภาพ</li>
+        <li><strong>Face Detection</strong> คือการตรวจจับใบหน้า</li>
+        <li><strong>Gesture Recognition</strong> คือการจำท่าทางสัมผัส</li>
+    </ul>
+</div>
+
+
+    <!-- Footer -->
+    <footer>
+        <p> Chonticha112 & Junlajak102</p>
+    </footer>
+
+    <script src="app.js"></script>
+    <script type="module">
+        import { ObjectDetector } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/object_detector.js';
+
+        let objectDetector;
+
+        async function loadObjectDetectionModel() {
+            objectDetector = await ObjectDetector.createFromModelPath("https://path-to-your-model-file");
+        }
+
+        // Example function to run detection
+        async function runObjectDetection() {
+            const imageElement = document.getElementById("image");
+            const detections = await objectDetector.detect(imageElement);
+            console.log(detections);
+            // Display detections on the website
+        }
+
+        loadObjectDetectionModel();
+
+        // Function to handle task selection
+        function selectTask(task) {
+            const contentDiv = document.getElementById("content");
+            switch(task) {
+                case 'home':
+                    contentDiv.innerHTML = "<h2>Home</h2><p>Welcome to AI Vision Tasks!</p>";
+                    break;
+                case 'about-us':
+                    contentDiv.innerHTML = "<h2>About Us</h2><p>We are passionate about AI and computer vision technologies.</p>";
+                    break;
+                case 'object-detection':
+                    contentDiv.innerHTML = "<h2>Object Detection</h2><p>Object detection model is loaded. Use an image to detect objects.</p>";
+                    break;
+                case 'image-classification':
+                    contentDiv.innerHTML = "<h2>Image Classification</h2><p>Image classification tasks are available.</p>";
+                    break;
+                case 'image-segmentation':
+                    contentDiv.innerHTML = "<h2>Image Segmentation</h2><p>Image segmentation tasks are ready.</p>";
+                    break;
+                case 'face-detection':
+                    contentDiv.innerHTML = "<h2>Face Detection</h2><p>Face detection model is available for use.</p>";
+                    break;
+                case 'gesture-recognition':
+                    contentDiv.innerHTML = "<h2>Gesture Recognition</h2><p>Gesture Recognition model is ready to go.</p>";
+                    break;
+                default:
+                    contentDiv.innerHTML = "<p>Select a task from the menu above to get started.</p>";
+            }
+        }
+    </script>
+</body>
+</html>

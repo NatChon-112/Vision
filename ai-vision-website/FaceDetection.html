@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Detection</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script>
+</head>
+<body>
+    <header>
+        <h1>FACE DETECTION</h1>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="ObjectDetection.html">Object Detection</a></li>
+            <li><a href="ImageClassification.html">Image Classification</a></li>
+            <li><a href="ImageSegmentation.html">Image Segmentation</a></li>
+            <li><a href="FaceDetection.html">Face Detection</a></li>
+            <li><a href="GestureRecognition.html">Gesture Recognition</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section class="main-container">
+            <div id="content" style="text-align: center;"></div>
+            <h2 class="main-title">การตรวจจับใบหน้า</h2>
+            <p class="description">
+                การตรวจจับใบหน้าทำได้โดยใช้โมเดล BlazeFace ซึ่งเป็นโมเดลตรวจจับใบหน้าแบบเรียลไทม์ <br> 
+                เลือกรูปภาพจากอุปกรณ์ของคุณเพื่อให้โมเดลทำการตรวจจับใบหน้าและแสดงผลลัพธ์<br>
+            </p>
+            <div id="content" style="text-align: center;">
+                <div class="image-container">
+                    <img id="selectedImage" width="400" height="300" alt="Image for Face Detection">
+                </div>
+                <div>
+                    <input type="file" id="imageInput" accept="image/*" class="button">
+                    <button id="detectButton" class="button">ตรวจจับใบหน้า</button>
+                </div>
+                <canvas id="canvas" width="400" height="300"></canvas>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p> Chonticha112 & Jullajuk102</p>
+    </footer>
+
+</body>
+
+<script>
+    const imageInput = document.getElementById('imageInput');
+    const selectedImage = document.getElementById('selectedImage');
+    const detectButton = document.getElementById('detectButton');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let model;
+
+    // Load the BlazeFace model
+    async function loadModel() {
+        model = await blazeface.load();
+        console.log('BlazeFace model loaded.');
+    }
+
+    // Load the model when the page is loaded
+    window.onload = () => {
+        loadModel();
+    };
+
+    // Display the selected image
+    imageInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            selectedImage.src = e.target.result;
+        };
+
+        reader.readAsDataURL(file);
+    });
+
+    // Detect faces when the button is clicked
+    detectButton.addEventListener('click', async () => {
+        if (!model || !selectedImage.src) return;
+
+        // Draw the selected image to the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(selectedImage, 0, 0, canvas.width, canvas.height);
+
+        // Perform face detection
+        const faces = await model.estimateFaces(selectedImage, false);
+        console.log(faces);
+
+        // Draw bounding boxes for detected faces
+        faces.forEach(face => {
+            const { topLeft, bottomRight } = face;
+            const start = topLeft;
+            const end = bottomRight;
+
+            const width = end[0] - start[0];
+            const height = end[1] - start[1];
+
+            // Draw bounding box
+            ctx.beginPath();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = 'red';
+            ctx.rect(start[0], start[1], width, height);
+            ctx.stroke();
+        });
+    });
+</script>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Vision Tasks - Gesture Recognition</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- เชื่อมต่อ MediaPipe Hands -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+</head>
+<body>
+    <header>
+        <h1>GESTURE RECOGNITION</h1>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="ObjectDetection.html">Object Detection</a></li>
+            <li><a href="ImageClassification.html">Image Classification</a></li>
+            <li><a href="ImageSegmentation.html">Image Segmentation</a></li>
+            <li><a href="FaceDetection.html">Face Detection</a></li>
+            <li><a href="GestureRecognition.html">Gesture Recognition</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section class="main-container">
+            <div id="content" style="text-align: center;"></div>
+            <h2 class="main-title">การรู้จำท่าทาง</h2>
+            <p class="description">
+                ระบบตรวจจับท่าทางสามารถตรวจจับและแยกแยะท่าทางของมือในภาพหรือวิดีโอ<br>ซึ่งสามารถนำไปใช้ในงานเช่น การสั่งงานด้วยท่าทาง การควบคุมแบบไม่ต้องสัมผัส และการเล่นเกม
+            </p>
+            <div class="camera-container">
+                <video id="video" autoplay playsinline></video>
+                <canvas id="canvas" style="position: absolute; top: 0; left: 0;"></canvas>
+            </div>
+            <div>
+                <button id="startButton" class="button">เปิดกล้อง</button>
+                <button id="stopButton" class="button">ปิดกล้อง</button>
+            </div>
+            <div id="detectionResult"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p> Chonticha112 & Jullajuk102</p>
+    </footer>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        let stream;
+        let camera;
+
+        // โหลด MediaPipe Hands
+        const hands = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
+        });
+
+        hands.setOptions({
+            maxNumHands: 2, // จำนวนมือสูงสุดที่ต้องการตรวจจับ
+            modelComplexity: 1,
+            minDetectionConfidence: 0.7,
+            minTrackingConfidence: 0.7,
+        });
+
+        hands.onResults(onResults); // กำหนดฟังก์ชันเมื่อมีผลลัพธ์
+
+        // ฟังก์ชันเปิดกล้อง
+        startButton.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+
+                // เริ่มกล้อง
+                camera = new Camera(video, {
+                    onFrame: async () => {
+                        await hands.send({ image: video });
+                    },
+                    width: 640,
+                    height: 480,
+                });
+                camera.start();
+            } catch (error) {
+                console.error("ไม่สามารถเปิดกล้องได้: ", error);
+                alert("เกิดข้อผิดพลาด: " + error.message);
+            }
+        });
+
+        // ฟังก์ชันปิดกล้อง
+        stopButton.addEventListener('click', () => {
+            if (stream) {
+                const tracks = stream.getTracks();
+                tracks.forEach(track => track.stop());
+                video.srcObject = null;
+                camera.stop(); // หยุดกล้อง
+                context.clearRect(0, 0, canvas.width, canvas.height); // เคลียร์ canvas
+            }
+        });
+
+        // ฟังก์ชันการวาดผลลัพธ์
+        function onResults(results) {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+            if (results.multiHandLandmarks) {
+                for (const landmarks of results.multiHandLandmarks) {
+                    drawConnectors(context, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 5 });
+                    drawLandmarks(context, landmarks, { color: '#FF0000', lineWidth: 2 });
+                }
+            }
+        }
+
+        // ปรับขนาด canvas ตามขนาดของ video
+        video.addEventListener('loadedmetadata', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+        });
+    </script>
+
+</body>
+</html>
